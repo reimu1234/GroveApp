@@ -1,24 +1,30 @@
 cmake_minimum_required(VERSION 3.22.1)
-project(GroveApp)
+project(grove_app_lib)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if(ANDROID)
-    add_definitions(-DCINDER_ANDROID=1)
-    add_definitions(-DCINDER_GL_ES_3=1)
-endif()
+# 创建一个示例源文件
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/native-lib.cpp
+"#include <jni.h>
+#include <string>
 
-file(GLOB SOURCES 
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/**/*.cpp"
+extern \"C\" JNIEXPORT jstring JNICALL
+Java_com_groveapp_MainActivity_stringFromJNI(
+        JNIEnv* env,
+        jobject /* this */) {
+    std::string hello = \"Hello from C++\";
+    return env->NewStringUTF(hello.c_str());
+}")
+
+# 添加库
+add_library(${PROJECT_NAME} SHARED
+    native-lib.cpp
 )
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
+# 查找并链接需要的库
+find_library(log-lib log)
 
 target_link_libraries(${PROJECT_NAME}
-    android
-    GLESv3
-    EGL
-    log
+    ${log-lib}
 )
